@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced C++ Web Server</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8f9fa;
+            color: #202124;
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-highlight {
+            color: #4285f4;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #5f6368;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            background: #34a853;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        .header {
+            margin-bottom: 48px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 400;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            color: #202124;
+        }
+
+        .header p {
+            font-size: 16px;
+            color: #5f6368;
+            margin-bottom: 24px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .metric-card:hover {
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .metric-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #5f6368;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 300;
+            letter-spacing: -1px;
+            color: #202124;
+            margin-bottom: 8px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .metric-subtext {
+            font-size: 13px;
+            color: #80868b;
+        }
+
+        .metric-card.success {
+            border-left: 4px solid #34a853;
+        }
+
+        .metric-card.warning {
+            border-left: 4px solid #ea4335;
+        }
+
+        .metric-card.info {
+            border-left: 4px solid #4285f4;
+        }
+
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            font-size: 20px;
+            font-weight: 500;
+            color: #202124;
+            margin-bottom: 20px;
+            letter-spacing: -0.25px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.25px;
+        }
+
+        button:hover {
+            background: #3367d6;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        }
+
+        button:active {
+            background: #2a56c6;
+        }
+
+        .endpoint {
+            background: #f8f9fa;
+            padding: 16px;
+            margin: 12px 0;
+            border-radius: 4px;
+            border-left: 3px solid #dadce0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Courier New', monospace;
+        }
+
+        .endpoint:hover {
+            background: #f1f3f4;
+            border-left-color: #4285f4;
+            transform: translateX(4px);
+        }
+
+        .endpoint-method {
+            font-weight: 500;
+            color: #4285f4;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .endpoint-path {
+            font-weight: 500;
+            color: #202124;
+            margin-bottom: 4px;
+        }
+
+        .endpoint-desc {
+            font-size: 13px;
+            color: #5f6368;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .feature {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .feature-icon {
+            font-size: 24px;
+            min-width: 32px;
+        }
+
+        .feature-text h3 {
+            font-size: 14px;
+            font-weight: 500;
+            color: #202124;
+            margin-bottom: 4px;
+        }
+
+        .feature-text p {
+            font-size: 13px;
+            color: #5f6368;
+        }
+
+        footer {
+            text-align: center;
+            padding: 32px 24px;
+            color: #80868b;
+            font-size: 13px;
+            border-top: 1px solid #dadce0;
+            margin-top: 48px;
+        }
+
+        .divider {
+            height: 1px;
+            background: #dadce0;
+            margin: 24px 0;
+        }
+
+        @media (max-width: 768px) {
+            .navbar-content {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .metric-value {
+                font-size: 24px;
+            }
+
+            .container {
+                padding: 16px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-content">
+            <div class="logo">C++ <span class="logo-highlight">Server</span></div>
+            <div class="status">
+                <span class="status-dot"></span>
+                <span>Running</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>Advanced C++ Web Server</h1>
+            <p>High-performance multi-threaded server with real-time monitoring and REST API</p>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card success">
+                <div class="metric-label">Total Requests</div>
+                <div class="metric-value" id="total-requests">0</div>
+                <div class="metric-subtext">Since server start</div>
+            </div>
+            <div class="metric-card success">
+                <div class="metric-label">Successful Requests</div>
+                <div class="metric-value" id="successful-requests">0</div>
+                <div class="metric-subtext">2xx status codes</div>
+            </div>
+            <div class="metric-card warning">
+                <div class="metric-label">Failed Requests</div>
+                <div class="metric-value" id="failed-requests">0</div>
+                <div class="metric-subtext">4xx, 5xx codes</div>
+            </div>
+            <div class="metric-card info">
+                <div class="metric-label">Data Sent</div>
+                <div class="metric-value" id="bytes-sent">0 B</div>
+                <div class="metric-subtext">Total bytes transmitted</div>
+            </div>
+            <div class="metric-card info">
+                <div class="metric-label">Server Uptime</div>
+                <div class="metric-value" id="uptime">0 s</div>
+                <div class="metric-subtext">Time since startup</div>
+            </div>
+            <div class="metric-card info">
+                <div class="metric-label">Avg Response Size</div>
+                <div class="metric-value" id="avg-response">0 B</div>
+                <div class="metric-subtext">Per request average</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Server Configuration</h2>
+            <div class="button-group">
+                <button onclick="refreshMetrics()">Refresh Metrics</button>
+                <button onclick="openEndpoint('/api/health')">Health Check</button>
+            </div>
+            <p style="font-size: 13px; color: #5f6368;">
+                <strong>Port:</strong> 8080 | 
+                <strong>Thread Pool:</strong> 10 workers | 
+                <strong>Request Queue:</strong> 1000 maximum
+            </p>
+        </div>
+
+        <div class="section">
+            <h2>API Endpoints</h2>
+            <div class="endpoint" onclick="openEndpoint('/api/status')">
+                <div class="endpoint-method">GET</div>
+                <div class="endpoint-path">/api/status</div>
+                <div class="endpoint-desc">Server status and engine information</div>
+            </div>
+            <div class="endpoint" onclick="openEndpoint('/api/metrics')">
+                <div class="endpoint-method">GET</div>
+                <div class="endpoint-path">/api/metrics</div>
+                <div class="endpoint-desc">Real-time performance metrics and statistics</div>
+            </div>
+            <div class="endpoint" onclick="openEndpoint('/api/health')">
+                <div class="endpoint-method">GET</div>
+                <div class="endpoint-path">/api/health</div>
+                <div class="endpoint-desc">Health check with server timestamp</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Architecture & Features</h2>
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">⚙️</div>
+                    <div class="feature-text">
+                        <h3>Multi-threaded</h3>
+                        <p>10-worker thread pool using Windows API for concurrent request handling</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-text">
+                        <h3>Real-time Metrics</h3>
+                        <p>Live performance tracking with request stats and uptime monitoring</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔒</div>
+                    <div class="feature-text">
+                        <h3>Thread Safe</h3>
+                        <p>Critical sections and mutex synchronization for data integrity</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📝</div>
+                    <div class="feature-text">
+                        <h3>Request Logging</h3>
+                        <p>Timestamped console logs for every request with status codes</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🌐</div>
+                    <div class="feature-text">
+                        <h3>REST API</h3>
+                        <p>Clean HTTP endpoints returning JSON responses</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">⚡</div>
+                    <div class="feature-text">
+                        <h3>High Performance</h3>
+                        <p>Optimized socket handling and efficient memory management</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2026 Advanced C++ Web Server • Built with C++, Winsock2, and Windows API</p>
+            <p>Last updated: <span id="last-update">--:--:--</span></p>
+        </footer>
+    </div>
+
+    <script>
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function formatUptime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            if (hours > 0) {
+                return `${hours}h ${minutes}m`;
+            } else if (minutes > 0) {
+                return `${minutes}m ${secs}s`;
+            } else {
+                return `${secs}s`;
+            }
+        }
+
+        function refreshMetrics() {
+            fetch('/api/metrics')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('total-requests').textContent = data.total_requests;
+                    document.getElementById('successful-requests').textContent = data.successful_requests;
+                    document.getElementById('failed-requests').textContent = data.failed_requests;
+                    document.getElementById('bytes-sent').textContent = formatBytes(data.total_bytes_sent);
+                    document.getElementById('uptime').textContent = formatUptime(data.uptime_seconds);
+                    document.getElementById('avg-response').textContent = formatBytes(data.average_response_size);
+                    document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+                })
+                .catch(error => console.error('Error fetching metrics:', error));
+        }
+
+        function openEndpoint(endpoint) {
+            window.open(endpoint, '_blank');
+        }
+
+        // Auto-refresh metrics every 2 seconds
+        setInterval(refreshMetrics, 2000);
+        refreshMetrics();
+    </script>
+</body>
+</html>
